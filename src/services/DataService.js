@@ -183,6 +183,8 @@ const products = [
   // ... other products
 ];
 
-export default {
+const dataService = {
   getProducts: () => products,
 };
+
+export default dataService;

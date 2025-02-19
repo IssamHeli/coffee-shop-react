@@ -8,8 +8,8 @@ const Checkout = () => {
   const { theme } = useContext(ThemeContext);
   const { cartItems ,clearCart} = useContext(CartContext);
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false); // Track permission
-  const [userLocation, setUserLocation] = useState(null);
-  const [address, setAddress] = useState(""); // State for the formatted address
+  const [ setUserLocation] = useState(null);
+  const [setAddress] = useState(""); // State for the formatted address
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -154,7 +154,7 @@ const Checkout = () => {
             console.error("Geolocation is not supported by this browser.");
           }
       }
-  }, []);
+  },);
   
   const handleSubmit = (e) => {
     
