@@ -92,7 +92,7 @@ const Cart = () => {
                         <Button variant="danger" onClick={handleClearCart} className="me-2"> {/* Button theme */}
                             Clear Cart
                         </Button>
-                        <Button href='checkout' variant="success">
+                        <Button href='#/checkout' variant="success">
                             Proceed to Checkout
                         </Button>
                     </div>
