@@ -29,15 +29,15 @@ const Header = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="/">Home</Nav.Link>
-            <Nav.Link href="/menu">Menu</Nav.Link>
-            <Nav.Link href="/ContactUs">ContactUs</Nav.Link>
+            <Nav.Link href="menu">Menu</Nav.Link>
+            <Nav.Link href="ContactUs">ContactUs</Nav.Link>
           </Nav>
           <Nav>
-            <Nav.Link href="/checkout">
+            <Nav.Link href="checkout">
               <FontAwesomeIcon icon={faShoppingBasket} className="me-2" />
               Checkout 
             </Nav.Link>
-            <Nav.Link href="/cart">
+            <Nav.Link href="cart">
               <FontAwesomeIcon icon={faShoppingCart} className="me-2" />
               Cart ({cartItems.length}) 
             </Nav.Link>
