@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './components/Home';
 import Menu from './components/Menu';
@@ -21,14 +21,14 @@ function App() {
         <main>
             <Routes>
               <Route path="/" element={<HomeWrapper/>} />
-              <Route path="/menu" element={<MenuWrapper/>} />
-              <Route path="/cart" element={<CartWrapper/>} />
-              <Route path="/checkout" element={<CheckoutWrapper/>} />
+              <Route path="/Menu" element={<MenuWrapper/>} />
+              <Route path="/Cart" element={<CartWrapper/>} />
+              <Route path="/Checkout" element={<CheckoutWrapper/>} />
               <Route path="/ContactUs" element={<ContactUsWrapper/>} />
             </Routes>
           </main>
+          <ToastContainer /> {/* Add ToastContainer at the end */}
        <Footer/>
-        <ToastContainer /> {/* Add ToastContainer at the end */}
       </CartProvider>
       </ThemeProvider>
     </Router>
