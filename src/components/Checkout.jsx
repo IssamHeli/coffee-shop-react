@@ -1,15 +1,13 @@
-import React, { useContext, useState,useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { Table, Button, Form, Row, Col, Card } from 'react-bootstrap';
 import { CartContext } from '../services/CartService';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { jsPDF } from "jspdf";
 
 const Checkout = () => {
   const { theme } = useContext(ThemeContext);
   const { cartItems ,clearCart} = useContext(CartContext);
-  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false); // Track permission
-  const [ setUserLocation] = useState(null);
-  const [ setAddress] = useState(""); // State for the formatted address
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -74,86 +72,6 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  useEffect(() => {
-    const getLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-                        .then(response => response.json())
-                        .then(responseData => {
-                            if (responseData.address) {
-                                const formattedAddress = [
-                                    responseData.address.road || '',
-                                    responseData.address.house_number || '',
-                                    responseData.address.neighbourhood || '',
-                                    responseData.address.city || '',
-                                    responseData.address.state || '',
-                                    responseData.address.postcode || '',
-                                    responseData.address.country || '',
-                                ].filter(part => part).join(', ');
-
-                                setAddress(formattedAddress); // Set the formatted address
-                                setFormData(prevFormData => ({ ...prevFormData, address: formattedAddress })); // Update form data using callback
-                                setUserLocation({ latitude, longitude });
-
-                                if (!responseData.address.road) {
-                                    console.warn("Road information not found for this location.");
-                                }
-                            } else {
-                                console.warn("No address found for this location.");
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Error getting address:", error);
-                        });
-                },
-                (error) => {
-                    console.error("Error getting location:", error);
-                }
-            );
-        } else {
-            console.error("Geolocation is not supported by this browser.");
-        }
-    };
-
-      // Check for existing permission or prompt for it
-      if (navigator.permissions) { // Check if Permissions API is supported
-          navigator.permissions.query({ name: 'geolocation' }).then(result => {
-              if (result.state === 'granted') {
-                  setLocationPermissionGranted(true);
-                  getLocation(); // Get location immediately if already granted
-              } else if (result.state === 'prompt') {
-                  // Prompt the user for permission.  The actual prompt is handled by the browser.
-                  navigator.geolocation.getCurrentPosition(() => {
-                      setLocationPermissionGranted(true);
-                      getLocation(); // Get location after successful prompt
-                  }, () => {
-                      setLocationPermissionGranted(false); // Permission denied
-                      // Handle denied permission (e.g., show a message)
-                  });
-              } else { // 'denied'
-                setLocationPermissionGranted(false);
-                // Handle denied permission
-              }
-          });
-      } else { // Permissions API not supported
-          // Fallback for browsers that don't support the Permissions API
-          if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(() => {
-                  setLocationPermissionGranted(true);
-                  getLocation(); // Get location after successful prompt
-              }, () => {
-                  setLocationPermissionGranted(false); // Permission denied
-                  // Handle denied permission (e.g., show a message)
-              });
-          } else {
-            console.error("Geolocation is not supported by this browser.");
-          }
-      }
-  }, );
   
   const handleSubmit = (e) => {
     
@@ -169,9 +87,9 @@ const Checkout = () => {
             cardCvc: '',
         });
         clearCart(); 
-        toast.success('Order placed successfully!', {
-            position: "top-right",
-            autoClose: 2000,
+        toast.success('Order placed successfully!,Check Out Your Receipt in Donwloads', {
+            position: "top-center",
+            autoClose: 6000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -179,6 +97,7 @@ const Checkout = () => {
             progress: undefined,
             theme: "light",
           });
+          generateReceipt();
     }else{
        return;
     }
@@ -187,6 +106,40 @@ const Checkout = () => {
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
   };
+  const generateShortGUID = () => {
+    return Math.random().toString(36).substr(2, 8).toUpperCase();
+};
+  const generateReceipt = () => {
+    const doc = new jsPDF();
+     const idorder = generateShortGUID(); 
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("CoffeShop Order Receipt", 105, 20, { align: "center" });
+
+    doc.setFontSize(12);
+
+    doc.text(`Order id :${idorder}`, 20, 30);
+    doc.text(`Customer Name: ${formData.name}`, 20, 40);
+    doc.text(`Email: ${formData.email}`, 20, 50);
+    doc.text(`Address: ${formData.address}`, 20, 60);
+
+    doc.text("Order Summary:", 20, 80);
+    let yPosition = 90;
+
+    cartItems.forEach((item, index) => {
+        doc.text(`${index + 1}. ${item.product.name} (x${item.quantity}) - $${(item.product.price * item.quantity).toFixed(2)}`, 20, yPosition);
+        yPosition += 10;
+    });
+
+    doc.text(`Total: $${calculateTotal().toFixed(2)}`, 20, yPosition + 10);
+
+    doc.text("Thank you for your purchase!", 20, yPosition + 30);
+
+    // Save and trigger download
+    doc.save("order_receipt.pdf");
+};
+
 
   return (
     <div className={`mt-5 bg-${theme} text-${theme === 'light' ? 'dark' : 'light'}`}>
@@ -262,16 +215,12 @@ const Checkout = () => {
             <Form.Control
                 as="textarea"
                 rows={3}
-                placeholder={locationPermissionGranted ? "Fetching Address..." : "Enter your address"}
                 name="address"
                 value={formData.address} // Use formData.address here!
                 onChange={handleChange}
                 isInvalid={!!errors.address}
             />
             <Form.Text className="text-danger">{errors.address}</Form.Text>
-            {!locationPermissionGranted && (
-                <Form.Text>Please grant location permission to automatically fill your address.</Form.Text>
-            )}
         </Form.Group>
                   <h3 className="mt-4 mb-3">Payment Information</h3> {/* Added margin top */}
                   <Form.Group className="mb-3">
